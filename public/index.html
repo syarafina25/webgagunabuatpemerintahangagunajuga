@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiFi Speed Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        canvas { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Uji Kecepatan WiFi</h1>
+    <button onclick="startSpeedTest()">Mulai Uji Kecepatan</button>
+    <p id="speedResult"></p>
+    <canvas id="speedChart" width="400" height="200"></canvas>
+
+    <script>
+        // Mulai uji kecepatan WiFi
+        async function startSpeedTest() {
+            const result = await getWifiSpeed();
+            document.getElementById('speedResult').innerText = `Kecepatan: ${result.download} Mbps`;
+
+            // Kirim hasil ke server untuk disimpan di database
+            await fetch('/save-speed', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ speed: result.download })
+            });
+
+            // Perbarui grafik dengan data terbaru
+            updateChart();
+        }
+
+        // Simulasi mendapatkan kecepatan WiFi
+        function getWifiSpeed() {
+            return new Promise((resolve) => {
+                setTimeout(() => resolve({ download: (Math.random() * 100).toFixed(2) }), 1000);
+            });
+        }
+
+        // Tampilkan grafik data kecepatan WiFi
+        async function updateChart() {
+            const response = await fetch('/get-speeds');
+            const data = await response.json();
+
+            const speeds = data.map(item => item.speed);
+            const labels = data.map(item => new Date(item.timestamp).toLocaleTimeString());
+
+            const ctx = document.getElementById('speedChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Kecepatan WiFi (Mbps)',
+                        data: speeds,
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }]
+                }
+            });
+        }
+
+        // Perbarui grafik saat halaman pertama kali dimuat
+        updateChart();
+    </script>
+</body>
+</html>

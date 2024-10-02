@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiFi Speed Data Collection</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Uji Kecepatan WiFi</h1>
+    <button onclick="startSpeedTest()">Mulai Uji Kecepatan</button>
+    <p id="speedResult"></p>
+    <canvas id="speedChart"></canvas>
+
+    <script>
+        async function startSpeedTest() {
+            // Panggil API atau lakukan uji kecepatan
+            const result = await getWifiSpeed();
+            document.getElementById('speedResult').innerText = `Kecepatan: ${result.download} Mbps`;
+
+            // Kirim data ke backend
+            fetch('/save-speed', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ speed: result.download })
+            });
+
+            // Tampilkan data dalam bentuk grafik
+            displayChart([result.download]); // Contoh data
+        }
+
+        function getWifiSpeed() {
+            // Dummy data, bisa gunakan SpeedTest API atau Network Information API
+            return new Promise((resolve) => {
+                setTimeout(() => resolve({ download: Math.random() * 100 }), 1000);
+            });
+        }
+
+        function displayChart(data) {
+            const ctx = document.getElementById('speedChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Test 1', 'Test 2', 'Test 3'], // Bisa dinamakan sesuai data waktu
+                    datasets: [{
+                        label: 'Kecepatan WiFi (Mbps)',
+                        data: data,
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }]
+                }
+            });
+        }
+    </script>
+</body>
+</html>
